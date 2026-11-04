@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include <Engine/smvk.h>
-#include <Engine/RHI/resource_manager.h>
+#include <smvk/smvk.h>
+#include <smvk/rhi/resource_manager.h>
 #include <memory>
 #include <string>
 #include <vector>

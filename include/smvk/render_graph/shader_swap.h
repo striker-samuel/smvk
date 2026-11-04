@@ -23,7 +23,7 @@
 //     module — a corrupt blob fails HERE with a named provider, never
 //     inside a driver.
 
-#include <Engine/RHI/resource_manager.h>
+#include <smvk/rhi/resource_manager.h>
 #include <Engine/Utils/shader_library.h>
 
 #include <utility>

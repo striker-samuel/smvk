@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include <Engine/smvk.h>
-#include <Engine/RHI/gpu_memory_spill.h>
+#include <smvk/smvk.h>
+#include <smvk/rhi/gpu_memory_spill.h>
 // Windowing is SDL3 (see App/app.h). Forward-declared so RHI headers stay
 // light; .cpp files include <SDL3/SDL_video.h>.
 struct SDL_Window;
