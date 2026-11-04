@@ -35,7 +35,7 @@
 //   engine/shaders/engine_limits.hlsli (bridged into C++ by
 //   Engine/Core/Limits.h — the only C++ includer of that file).
 // Retired with the move (dead constants, zero references anywhere):
-//   MAX_BUFFERS, MAX_SHADOW_SAMPLERS, MAX_COLOR_ATTACHEMNTS.
+//   MAX_BUFFERS, MAX_SHADOW_SAMPLERS, MAX_COLOR_ATTACHMENTS.
 
 namespace smvk {
 
@@ -546,9 +546,9 @@ void OnResourceExhaustion(const char* site);
 	// ============================================================================
 
 
-	// BufferType encapsulates mmeoryUsage, locality and more.
-	// This is a higher level abstraction than the rest of the rhi but reality is
-	// we need to cover X uses for 99% of apps. No need to provideo MemoryUsage or Locality and expose them to user
+	// BufferType encapsulates memoryUsage, locality and more.
+	// This is a higher-level abstraction than the rest of the RHI but the reality is
+	// we need to cover X uses for 99% of apps. No need to provide MemoryUsage or Locality and expose them to the user
 
 	typedef enum BufferType {
 		BufferType_Index = 0,
@@ -1416,7 +1416,7 @@ void OnResourceExhaustion(const char* site);
 
 	enum Bindings {
 		kBinding_Textures = 0, // position 0
-		kBinding_Samplers = 1, // I thought better to alias samplers with comparisonSamplers HLSLside.
+		kBinding_Samplers = 1, // I thought it better to alias samplers with comparisonSamplers HLSL-side.
 		kBinding_StorageImages = 2,
 		kBinding_EngineGlobals = 3, // read-only StructuredBuffer<EngineGlobals>, one slice per frame in flight
 		// 3D volume textures (SG probe grids): sampled-image array whose
@@ -1441,7 +1441,7 @@ void OnResourceExhaustion(const char* site);
 		kBinding_VertexLightmap = 7,
 		// Optional hardware ray-query TLAS, one scene per RHI context.
 		kBinding_RayTracingScene = 8,
-		kBinding_NumBindings = 9 // this should be # of all other
+		kBinding_NumBindings = 9 // this should be the count of all other bindings
 	};
 
 	struct QueueFamilyIndices {
@@ -1823,7 +1823,7 @@ struct ImageCreateInfo
 	void destroy(ResourceManager* ctx, BindlessImageHandle handle);
 	void destroy(ResourceManager* ctx, ImageViewHandle handle);
 	void destroy(ResourceManager* ctx, DescriptorPoolHandle handle);
-	void destroy(ResourceManager* ctx, ShaderModuleHandle handle); // will be removed in 1.4. transition
+	void destroy(ResourceManager* ctx, ShaderModuleHandle handle); // will be removed in the 1.4 transition
 
 	 // Sync types translated from nicegraf. RHI-opaque, no Vk leakage.
 	struct SyncBarrierMasks
@@ -1914,7 +1914,7 @@ struct ImageCreateInfo
 			return PipelineStageBit_DrawIndirect;
 		case AccessFlags::IndexRead:
 		case AccessFlags::VertexAttributeRead:
-			// The Vertex bit expands VERTEX_SHADER|VERTEX_INPUT in both Vk
+			// The Vertex bit expands to VERTEX_SHADER|VERTEX_INPUT in both Vk
 			// translators (VUID-03901 - see DerivePipelineStage's note).
 			return PipelineStageBit_Vertex;
 		case AccessFlags::InputAttachmentRead:

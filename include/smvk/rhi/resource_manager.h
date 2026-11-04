@@ -48,7 +48,7 @@ static_assert(sizeof(RayTracingInstance) == 80);
 // True when the device was created with VK_EXT_mesh_shader enabled
 // (taskShader + meshShader features, probed, never required). Gates the
 // mesh-shader gfx filter path; the compute+indexed CPU fallback stays
-// otherwise. Also settable off at device level via TOURMALINE_MESH=0.
+// otherwise. Can also be turned off at the device level via TOURMALINE_MESH=0.
 bool SupportsMeshShaders();
 
 // The ACTIVE Vulkan physical device's name (captured at the device pick
@@ -268,7 +268,6 @@ public:
     const void* GetImageViewVkImageView(ImageViewHandle handle) const;
     const void* GetVkSamplerOpaque(uint32_t samplerIndex) const;
     uint64_t GetBufferDeviceAddress(BufferHandle handle) const;
-    // Flush batched uploads (256MB threshold, or manual at end of scene)
     // Optional Vulkan KHR ray-query scene: hardware BLAS/TLAS from static
     // world triangles. World changes trigger a synchronous rebuild (GPU
     // idle); unsupported devices retain the raster shadow-map fallback.
@@ -278,13 +277,14 @@ public:
     bool BuildRayTracingWorld(std::span<const RayTracingInstance> instances);
     bool RayTracingWorldReady() const;
     void ClearRayTracingWorld();
+    // Flush batched uploads (256MB threshold, or manual at end of scene)
     void FlushUploads();
     // Flush + block until every upload batch (transfer + graphics acquire)
     // has retired. Required before destroying resources that may still be
     // referenced by unflushed streamer batches (e.g. a failed pak import
     // that drops its partial cluster).
     void WaitForUploads();
-    // Sampler cache – deduplicates by description, returns stable
+    // Sampler cache – deduplicates by description, returns a stable
     // index into the global sampler descriptor array
     // (0 .. smvk::limits::MaxSamplers-1).
     // Mirrors VulkanPipelineCache: same SamplerCreateInfo → same index.

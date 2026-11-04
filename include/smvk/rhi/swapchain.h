@@ -78,7 +78,7 @@ public:
     std::vector<PresentMode> GetAvailablePresentModes() const;
 
     // GPU frame time (ms) of the last retired frame, for the CPU/GPU
-    // split overlay. False until a full frame has retired.
+    // split overlay. 0 until a full frame has retired.
     double GetGpuFrameMs() const;
     // Last retired frame's individually timestamped rendergraph passes,
     // in execution/Optick-scope order. Async work may overlap.
@@ -92,7 +92,7 @@ public:
     // False when the device lacks cross-queue timestamps.
     bool GetGpuStageTimings(double* outMs, bool* outValid, uint32_t count) const;
     // Last vkQueuePresentKHR wall time (ms): FIFO VSync throttle, i.e.
-    // wait rather than CPU work.
+    // it measures wait rather than CPU work.
     double GetPresentWaitMs() const;
 
     // Exposed for compatibility – preferred via GetExtent/GetImageCount

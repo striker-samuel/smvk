@@ -29,7 +29,7 @@
 
 1. `src/vulkan/impl.cpp` directly includes Tourmaline App, input, world,
    renderer meshes, DLSS, profiler, ImGui and third-party dependencies.
-   Separate device/back-end behavior from app-host and world rendering,
+   Separate device/backend behavior from app-host and world rendering,
    keeping engine adapters in Tourmaline.
 2. `src/vulkan/detail/vulkan_impl.h` still includes Tourmaline memory
    allocators and static vertex heaps. Decide which pieces are genuinely RHI

@@ -120,7 +120,7 @@ std::vector<PushConstantRange> MergePushConstantRanges(
 
 // Validate that every reflected range lies within [0, maxSize), is a
 // multiple of 4 (VUID-vkCmdPushConstants-offset-01795), and that total
-// extent fits. Returns true when fits; otherwise fills error (with
+// extent fits. Returns true when it fits; otherwise fills error (with
 // "unsupported ..." for limit/alignment failures).
 bool ValidatePushConstants(const std::vector<PushConstantRange>& ranges,
                            uint32_t maxSize,

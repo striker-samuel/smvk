@@ -131,7 +131,7 @@ namespace smvk
 		// deformed heap is the engine's case). Backend mapping: Vulkan
 		// emits a vkCmdPipelineBarrier2 all-commands barrier; D3D12 emits
 		// a null-resource UAV barrier (all prior UAV work completes
-		// before any later UAV work). No-op inside a graphics-only
+		// before any later UAV work). A no-op inside a graphics-only
 		// sequence is guaranteed safe (over-synchronization only).
 		void EmitGlobalMemoryBarrier();
 
@@ -205,7 +205,7 @@ namespace smvk
 	using ImageKey = ImageCreateInfo;
 	struct ImageViewKey
 	{
-		// cant reuse ImageCreateInfo beacuse it lacks handle property. Otherwise should be the same as this
+		// Can't reuse ImageCreateInfo because it lacks the handle property. Otherwise it should be the same as this.
 		LogicalImageHandle image{};
 		ImageViewType viewType =
 			ImageViewType::View2D;
