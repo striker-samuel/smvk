@@ -348,7 +348,6 @@ public:
     // Deferred task support
     void AddDeferredTask(std::packaged_task<void()>&& task, uint32_t handleIndex = 0, uint32_t handleGen = 0);
     void ProcessDeferredTasks();
-    void ProcessDeferrredTasks() { ProcessDeferredTasks(); }
 
     // Retire-ordered destruction: queues the task until ALL graphics work
     // submitted so far has retired (backend-defined — the Vulkan timeline

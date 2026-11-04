@@ -408,7 +408,7 @@ void ResourceManager::AddDeferredTask(std::packaged_task<void()>&& task, uint32_
     CommandSubmitHandle h{nullptr, handleIndex, handleGen};
     impl_->vulkan.AddDeferredTask(std::move(task), h);
 }
-void ResourceManager::ProcessDeferredTasks() { impl_->vulkan.ProcessDeferrredTasks(); }
+void ResourceManager::ProcessDeferredTasks() { impl_->vulkan.ProcessDeferredTasks(); }
 void ResourceManager::DeferDestroyTask(std::packaged_task<void()>&& task) {
     // The retire-ordered key (all graphics work so far) — see the header
     // contract; the static-heap range frees ride it (cluster.cpp).

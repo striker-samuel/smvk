@@ -3529,7 +3529,7 @@ smvk::VulkanResourceManager::~VulkanResourceManager() {
 	//
 	if (m_streamer) { m_streamer->waitAll(); m_streamer->destroy(); m_streamer.reset(); }
 	// Unconditional drain: resources freed during Shutdown (after the last
-	// ProcessDeferrredTasks) plus the static buffers below must still be
+	// ProcessDeferredTasks) plus the static buffers below must still be
 	// released. Device is idle, and Flush never queries semaphores, so this is
 	// safe even though the swapchain timeline is already gone (member order).
 	FlushDeferredTasks();
@@ -8455,7 +8455,7 @@ void smvk::VulkanResourceManager::AddDeferredTask(std::packaged_task<void()>&& t
 	std::lock_guard<std::mutex> lock(m_deferredMutex);
 	m_deferredTasks.emplace_back(std::move(task), point);
 }
-void smvk::VulkanResourceManager::ProcessDeferrredTasks()
+void smvk::VulkanResourceManager::ProcessDeferredTasks()
 {
 	std::vector<DeferredTask> ready;
 	{
@@ -8538,7 +8538,7 @@ void smvk::VulkanResourceManager::FlushDeferredTasks()
 			batch = std::move(m_deferredTasks);
 			m_deferredTasks.clear();
 		}
-		// Outside the lock, same reason as ProcessDeferrredTasks: tasks may
+		// Outside the lock, same reason as ProcessDeferredTasks: tasks may
 		// re-enqueue (destroy chains); the loop drains those next iteration.
 		for (auto& task : batch)
 			task.task_();

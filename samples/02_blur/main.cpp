@@ -402,7 +402,7 @@ private:
 		// Safe without idling: Holder destroy retires the old VkImage/
 		// VkImageView on the graphics timeline (engine DeferDestroy), so the
 		// GPU can still be reading them. Retirement drains in
-		// ProcessDeferrredTasks each frame; pool slots stay reserved until
+		// ProcessDeferredTasks each frame; pool slots stay reserved until
 		// then, so there is no aliasing either.
 		if (!CreateBlurTarget(m_blurA, want, "blurA") || !CreateBlurTarget(m_blurB, want, "blurB"))
 			std::cerr << "[02_blur] Failed to create blur targets\n";
@@ -575,7 +575,7 @@ private:
 		}
 
 		m_rendergraph->Execute(fb);
-		m_context->ProcessDeferrredTasks();
+		m_context->ProcessDeferredTasks();
 	}
 
 private:

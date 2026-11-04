@@ -731,7 +731,7 @@ namespace smvk {
 		void AddDeferredTask(std::packaged_task<void()>&& task, CommandSubmitHandle handle = CommandSubmitHandle{});
 		void AddDeferredTask(std::packaged_task<void()>&& task, CommandSubmitHandle handle, Submitter* submitter);
 		void AddDeferredTask(std::packaged_task<void()>&& task, TimelinePoint point);
-		void ProcessDeferrredTasks();
+		void ProcessDeferredTasks();
 		// Runs every queued deferred task unconditionally (no readiness check).
 		// Only safe when the device is idle (or tearing down); used so teardown
 		// can never leak resources whose retire point would never be reached.
@@ -743,7 +743,7 @@ namespace smvk {
 		void NotifyGraphicsSubmit(VkSemaphore timelineSemaphore, uint64_t timelineValue);
 		// Raw device handle (test support): headless integration tests create
 		// their OWN timeline semaphores to drive NotifyGraphicsSubmit /
-		// ProcessDeferrredTasks like a swapchain would (see
+		// ProcessDeferredTasks like a swapchain would (see
 		// tests/test_retirement_fuzz.cpp). The device itself stays internal
 		// (file-static in impl.cpp) - no production code needs it here.
 		VkDevice VkDeviceHandle() const;

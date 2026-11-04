@@ -167,7 +167,7 @@ private:
 			);
 
 		m_rendergraph->Execute(fb);
-		m_context->ProcessDeferrredTasks(); // Not needed here
+		m_context->ProcessDeferredTasks(); // Not needed here
 	}
 
 private:
