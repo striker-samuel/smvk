@@ -9,7 +9,7 @@
 struct SDL_Window;
 #include <smvk/core/handle.h>
 #include <smvk/core/pool.h>
-#include <Engine/Renderer/spirv_reflection.h>
+#include <smvk/reflection/spirv_reflection.h>
 #include <memory>
 #include <array>
 #include <vector>

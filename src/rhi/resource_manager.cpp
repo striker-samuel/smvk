@@ -4,7 +4,7 @@
 #include <smvk/rhi/resource_manager.h>
 #include <array>
 #include <smvk/smvk.h>
-#include <Engine/Renderer/spirv_reflection.h>
+#include <smvk/reflection/spirv_reflection.h>
 #ifndef VK_NO_PROTOTYPES
 #define VK_NO_PROTOTYPES
 #endif

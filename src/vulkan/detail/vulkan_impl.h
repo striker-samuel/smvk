@@ -10,7 +10,7 @@
 #include <Engine/Memory/memory.h>
 #include <Engine/Memory/linear_vector.h>
 #include <Engine/Memory/arena.h>
-#include <Engine/Renderer/spirv_reflection.h>
+#include <smvk/reflection/spirv_reflection.h>
 
 #include "volk.h"
 #include "vk_mem_alloc.h"
