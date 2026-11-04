@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Samuel Martin
 // SPDX-License-Identifier: MIT
 
-#include <Engine/RHI/resource_manager.h>
+#include <smvk/rhi/resource_manager.h>
 #include <array>
-#include <Engine/smvk.h>
+#include <smvk/smvk.h>
 #include <Engine/Renderer/spirv_reflection.h>
 #ifndef VK_NO_PROTOTYPES
 #define VK_NO_PROTOTYPES

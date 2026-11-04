@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include <Engine/core.h>
-#include <Engine/Rendergraph/rendergraph.h>
+#include <smvk/render_graph/render_graph.h>
 #include <Engine/Renderer/dxc_integration.h>
 
 static constexpr const char* kTriangleVertShader = R"(

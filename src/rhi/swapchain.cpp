@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Samuel Martin
 // SPDX-License-Identifier: MIT
 
-#include <Engine/RHI/swapchain.h>
+#include <smvk/rhi/swapchain.h>
 #include "../Vulkan/detail/vulkan_impl.h"
-#include <Engine/RHI/resource_manager.h>
+#include <smvk/rhi/resource_manager.h>
 
 namespace smvk {
 
