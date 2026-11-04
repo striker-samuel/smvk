@@ -5970,18 +5970,15 @@ void smvk::VulkanResourceManager::BindHeapImage(ImageHandle handle,
 }
 
 // ---- Target heap (design-A interval-aliased target memory; the system
-// reference is docs/target_heap_packing.md) ----
+// generic caller-defined lifetime intervals) ----
 // The master gate's single storage (see smvk.h's
 // TargetHeapAliasingEnabled contract): default OFF -
-// TOURMALINE_ALIASING=1 opts in. The gate forces every window to the
+// explicitly enabled by the host. The gate forces every window to the
 // full frame so no range ever shares (disjoint-range placement only,
 // always sound).
 namespace {
 	bool& TargetHeapAliasingGate() {
-		static bool value = [] {
-			const char* e = std::getenv("TOURMALINE_ALIASING");
-			return e != nullptr && std::atoi(e) == 1;
-		}();
+		static bool value = false;
 		return value;
 	}
 }
@@ -5997,10 +5994,10 @@ void smvk::SetTargetHeapAliasing(bool on) {
 // CompileTransientHeap (shape buckets + interval slots + VMA virtual
 // blocks over big device-local blocks), with slot live-user refcounts -
 // graph-EXTERNAL targets claim by declared [firstPhase, lastPhase]
-// windows (canonical TargetPhase order).
+// windows (caller-provided execution indices).
 [[nodiscard]] smvk::Holder<smvk::TargetHeapClaimHandle>
 smvk::VulkanResourceManager::ClaimTargetHeapRange(
-	ImageHandle image, TargetPhase firstPhase, TargetPhase lastPhase)
+	ImageHandle image, uint32_t firstPhase, uint32_t lastPhase)
 {
 	auto* img = images_.get(image);
 	if (!img || img->vkImage == VK_NULL_HANDLE || !img->transientHeap) {
@@ -6032,12 +6029,14 @@ smvk::VulkanResourceManager::ClaimTargetHeapRange(
 	// so every claim packs to a DISJOINT range (plain multi-bind
 	// placement, no aliasing, always sound). The declared windows are
 	// honored only when opted in.
+	// Validate the caller's interval even when sharing is disabled.
+	if (firstPhase > lastPhase) return {};
 	if (!TargetHeapAliasingEnabled()) {
-		firstPhase = TargetPhase::Shadows;
-		lastPhase = TargetPhase::Composite;
+		firstPhase = 0;
+		lastPhase = UINT32_MAX;
 	}
-	const uint32_t first = static_cast<uint32_t>(firstPhase);
-	const uint32_t last = static_cast<uint32_t>(lastPhase);
+	const uint32_t first = firstPhase;
+	const uint32_t last = lastPhase;
 
 	// Join a live slot: same shape + the newcomer's window is DISJOINT
 	// from every live user's span (arrival-order-independent: a wide
@@ -10948,7 +10947,7 @@ smvk::VulkanFrameBuffer smvk::detail::vulkan::VulkanSwapchain::AcquireFramebuffe
                 }
             }
         }
-		// Stage pairs (shadow-path instrumentation, see GpuStageTimer):
+		// Generic timestamp slot pairs:
 		// per-pair pulls — a stage that never ran this frame leaves its
 		// pair unwritten (reset but never written = NOT_READY), and the
 		// previous frame's value survives. The async-stream pair was
@@ -13541,7 +13540,7 @@ void smvk::RenderGraph::EmitBarriers(void* cmdOpaque, const std::vector<size_t>&
 // ---------------------------------------------------------------------------
 // RenderGraph barrier debug tracing — see the helpers next to ToVkStage.
 // ---------------------------------------------------------------------------
-// GPU stage-timer context (see GpuStageTimer in smvk.h): built per frame
+// GPU stage-timer context (see generic GPU timestamp slots in smvk.h): built per frame
 // from the swapchain's frame-timer pools (the stage pairs ride queries
 // 2+2s / 3+2s of the SAME pools), handed to every per-pass CommandBuffer
 // (raster stages write through CommandBuffer::WriteStageTimestamp) and
@@ -13818,14 +13817,14 @@ void smvk::RenderGraph::Execute(Framebuffer& fb)
 				VkCommandBufferBeginInfo beginCI{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 				beginCI.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 				VK_CHECK(vkBeginCommandBuffer(dstCmd, &beginCI));
-				// GPU stage timers, async stream (GpuStageTimer): the
-				// AGGREGATE blur stage begins at the FIRST C-stream CB's
+				// GPU stage timers, async stream (generic GPU timestamp slots): the
+				// Aggregate async stage begins at the FIRST C-stream CB's
 				// start — the whole chained stream is one stage (the
 				// timeline chain serializes the passes, so first-CB-start..
 				// last-CB-end IS its GPU cost) — and every pass gets its
 				// OWN pair (kGpuStageAsyncPassBase + i, capped at
 				// kGpuAsyncPassMaxTimers) so the H/V blur legs measure
-				// individually: leg cost = the pass's own pair, queue
+				// individually: pass cost = the pass's own pair, queue
 				// handoff + semaphore sync = the gap between leg k's end
 				// and leg k+1's begin. BOTTOM_OF_PIPE is compute-queue-
 				// legal (the Optick ALL_GRAPHICS restriction applies to
@@ -13833,7 +13832,7 @@ void smvk::RenderGraph::Execute(Framebuffer& fb)
 				if (stageTimerCtxPtr != nullptr) {
 					if (asyncChainIdx == 0)
 						vkCmdWriteTimestamp(dstCmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-							stageTimerCtx.pool, 2 + 2 * kGpuStageEvsmBlur);
+							stageTimerCtx.pool, 2 + 2 * kGpuStageAsyncAggregate);
 					if (asyncChainIdx < kGpuAsyncPassMaxTimers)
 						vkCmdWriteTimestamp(dstCmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
 							stageTimerCtx.pool,
@@ -14323,7 +14322,7 @@ void smvk::RenderGraph::Execute(Framebuffer& fb)
 				if (stageTimerCtxPtr != nullptr) {
 					if (lastAsync)
 						vkCmdWriteTimestamp(dstCmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-							stageTimerCtx.pool, 3 + 2 * kGpuStageEvsmBlur);
+							stageTimerCtx.pool, 3 + 2 * kGpuStageAsyncAggregate);
 					if (asyncChainIdx < kGpuAsyncPassMaxTimers)
 						vkCmdWriteTimestamp(dstCmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
 							stageTimerCtx.pool,

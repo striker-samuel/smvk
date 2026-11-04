@@ -17,23 +17,6 @@
 
 namespace smvk {
 
-// See header. Static-cached: the env is read once, matching the one-shot
-// dump arm checks in the app (getenv present + atoi >= 0 = armed).
-// Ships in all builds (debug views/dumps are dev tools, not stripped):
-// the env gate is the only switch.
-bool DebugImageDumpArmed() {
-    static const bool armed = [] {
-        const char* ssr = std::getenv("TOURMALINE_SSR_DUMP");
-        const char* evsm = std::getenv("TOURMALINE_EVSM_DUMP");
-        const char* fogTile = std::getenv("TOURMALINE_FOG_TILE_DUMP");
-        const char* contact = std::getenv("TOURMALINE_CONTACT_SHADOWS_DUMP");
-        return (ssr && std::atoi(ssr) >= 0) || (evsm && std::atoi(evsm) >= 0)
-            || (fogTile && std::atoi(fogTile) >= 0)
-            || (contact && std::atoi(contact) >= 0);
-    }();
-    return armed;
-}
-
 struct ResourceManager::Impl {
     VulkanResourceManager vulkan;
     Impl(SDL_Window* w) : vulkan({}, w) {}
@@ -261,8 +244,8 @@ ImageHandle ResourceManager::GetTextureImageHandle(TextureHandle handle) const {
 Holder<ImageHandle> ResourceManager::CreateHeapImage(
     const ImageCreateInfo& ci) { return impl_->vulkan.CreateHeapImage(ci); }
 Holder<TargetHeapClaimHandle> ResourceManager::ClaimTargetHeapRange(
-    ImageHandle image, TargetPhase firstPhase, TargetPhase lastPhase) {
-    return impl_->vulkan.ClaimTargetHeapRange(image, firstPhase, lastPhase);
+    ImageHandle image, uint32_t firstUse, uint32_t lastUse) {
+    return impl_->vulkan.ClaimTargetHeapRange(image, firstUse, lastUse);
 }
 void ResourceManager::ReleaseTargetHeapClaim(TargetHeapClaimHandle claim) {
     impl_->vulkan.ReleaseTargetHeapClaim(claim);
@@ -279,19 +262,6 @@ std::vector<GpuMemoryHeap> ResourceManager::GetGpuMemoryInfo() const {
     if (!impl_)
         return {};
     return impl_->vulkan.GetGpuMemoryInfo();
-}
-GpuMemoryWarningResult ResourceManager::PollGpuMemoryWarning(double elapsedSeconds) {
-    GpuMemoryPressureSample sample{};
-    for (const auto& heap : GetGpuMemoryInfo()) {
-        if (heap.deviceLocal) {
-            sample.localUsageBytes += heap.usageBytes;
-            sample.localBudgetBytes += heap.budgetBytes;
-        } else {
-            sample.nonlocalAvailable = true;
-            sample.nonlocalUsageBytes += heap.usageBytes;
-        }
-    }
-    return gpuMemorySpillDetector_.Update(sample, elapsedSeconds);
 }
 std::array<uint64_t, kMemoryCategoryCount> ResourceManager::GetMemoryLedger() {
     if (!impl_)
@@ -311,42 +281,6 @@ bool ResourceManager::SupportsMSAA2x() {
     return (props.limits.framebufferColorSampleCounts & want) != 0 &&
         (props.limits.framebufferDepthSampleCounts & want) != 0;
 }
-bool ResourceManager::SupportsEvsm() {
-    if (!impl_ || !impl_->vulkan.core_)
-        return false;
-    VkPhysicalDevice phys = smvk::GetVkPhysicalDevice();
-    if (phys == VK_NULL_HANDLE)
-        return false;
-    // RGBA32F as 2x MSAA color attachment, sampled + storage (blur).
-    const VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-        | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
-    VkImageFormatProperties props{};
-    VkResult r = vkGetPhysicalDeviceImageFormatProperties(phys,
-        VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
-        usage, 0, &props);
-    if (r != VK_SUCCESS)
-        return false;
-    if ((props.sampleCounts & VK_SAMPLE_COUNT_2_BIT) == 0)
-        return false;
-    // Single-sample RGBA32F must also serve as resolve dest + storage +
-    // transfer-src target (dump readback).
-    r = vkGetPhysicalDeviceImageFormatProperties(phys,
-        VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
-        usage | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-        0, &props);
-    if (r != VK_SUCCESS)
-        return false;
-    // The prefilter and every receiver sample the (blurred) moments with a
-    // LINEAR sampler: RGBA32F filterability is not guaranteed (uncommon on
-    // iGPUs) — without it the blur taps and the visibility reads are
-    // invalid, so fall back to PCF instead.
-    VkFormatProperties fp{};
-    vkGetPhysicalDeviceFormatProperties(phys,
-        VK_FORMAT_R32G32B32A32_SFLOAT, &fp);
-    if ((fp.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT) == 0)
-        return false;
-    return true;
-}
 bool ResourceManager::SupportsBc6h3DSampling() {
     if (!impl_ || !impl_->vulkan.core_)
         return false;
@@ -357,7 +291,7 @@ bool ResourceManager::SupportsBc6h3DSampling() {
     // the lit shaders trilinear-filter. Query the EXACT configuration
     // (format + image type + tiling + usage), then the linear-filter
     // feature bit — BC6H 2D support proves nothing about 3D on a given
-    // driver (the SupportsEvsm lesson: capability, not convention).
+    // driver (format support must be queried per image type).
     const VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT
         | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     VkImageFormatProperties props{};

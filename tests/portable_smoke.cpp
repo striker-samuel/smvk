@@ -8,7 +8,7 @@
 #include <smvk/reflection/spirv_reflection.h>
 #include <smvk/rhi/descriptor_limits.h>
 #include <smvk/rhi/frame_config.h>
-#include <smvk/rhi/gpu_memory_spill.h>
+#include <smvk/diagnostics/gpu_memory_spill.h>
 #include <smvk/rhi/resource_manager.h>
 #include <smvk/rhi/swapchain.h>
 // Compile step: every public header must build standalone — including

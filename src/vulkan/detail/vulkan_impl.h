@@ -775,8 +775,8 @@ namespace smvk {
 		// UNBOUND heap image (CreateHeapImage's product). Empty handle on
 		// failure.
 		[[nodiscard]] Holder<TargetHeapClaimHandle> ClaimTargetHeapRange(
-			ImageHandle image, TargetPhase firstPhase,
-			TargetPhase lastPhase);
+			ImageHandle image, uint32_t firstUse,
+			uint32_t lastUse);
 		// Drops the slot's live-user count; the LAST user's release frees
 		// the range RETIREMENT-ORDERED (DeferDestroy - behind the caller's
 		// image destroy in the deferred FIFO). No-op on empty/dead handles.
@@ -815,8 +815,8 @@ namespace smvk {
 			struct Claim {
 				uint32_t slot = ~0u;
 				uint64_t shape = 0;
-				TargetPhase firstPhase = TargetPhase::Count,
-					lastPhase = TargetPhase::Count;
+				uint32_t firstPhase = UINT32_MAX,
+					lastPhase = UINT32_MAX;
 			};
 			std::vector<Block> blocks;
 			std::vector<Slot> slots;
@@ -1273,7 +1273,7 @@ namespace smvk {
 		double GetLastGpuMs() const { return lastGpuMs_; }
 		bool HasGpuTiming() const { return gpuTimingValid_; }
 		// GPU stage timings (ms) of the last retired frame — the shadow-path
-		// instrumentation (see GpuStageTimer in smvk.h). Per stage: false
+		// instrumentation (see generic GPU timestamp slots in smvk.h). Per stage: false
 		// until it has run + retired at least once (a stage that never ran
 		// leaves its query pair unwritten — per-pair NOT_READY, not zero).
 		const double* GetLastStageGpuMs() const { return lastStageGpuMs_; }
@@ -1400,7 +1400,7 @@ namespace smvk {
 		float timestampPeriod_ = 0.0f; // ns per timestamp tick
 		double lastGpuMs_ = 0.0;
 		bool gpuTimingValid_ = false;
-		// Stage-timer extensions of the frame-timer pools (GpuStageTimer):
+		// Stage-timer extensions of the frame-timer pools (generic GPU timestamp slots):
 		// pairs at queries 2+2s / 3+2s per flight; per-stage validity (a
 		// stage that never ran leaves its pair unwritten = NOT_READY).
 		double lastStageGpuMs_[kGpuStageCount] = {};

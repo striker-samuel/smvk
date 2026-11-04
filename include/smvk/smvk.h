@@ -1402,37 +1402,16 @@ void OnResourceExhaustion(const char* site);
 	};
 	static_assert(sizeof(EngineGlobals) == 16, "EngineGlobals must stay 16 bytes (HLSL mirror relies on it)");
 
-	// GPU stage timers — shadow-path instrumentation for BOTH shadow
-	// representations (PCF + EVSM), so A/B runs measure the real GPU cost
-	// of each stage. Written by the shadow pass recording funcs
-	// (CommandBuffer::WriteStageTimestamp) and by RenderGraph::Execute
-	// around the async compute stream; the per-flight frame-timer query
-	// pools carry the query pairs (2+2s / 3+2s), and the swapchain reports
-	// the per-stage ms of the last retired frame (Swapchain::
-	// GetGpuStageTimings). A stage that never ran stays invalid (queries
-	// reset, never written — per-pair NOT_READY), not zero.
-	//
-	// Per-async-pass timers (kGpuStageAsyncPassBase + i): true-async
-	// compute pass i (sorted order) gets its own timestamp pair, written
-	// BOTTOM_OF_PIPE on the compute queue — a stage that is legal there,
-	// unlike the ALL_GRAPHICS stage the Optick Vulkan backend uses (the
-	// reason async passes get CPU-only Optick scopes). The pair measures
-	// the pass's own GPU cost; the GAP between pass k's end and pass k+1's
-	// begin is the queue handoff + timeline-semaphore sync overhead.
-	// EVSM's H->V blur chain is the canonical 2-pass user. Frames with
-	// more async passes than slots keep the aggregate kGpuStageEvsmBlur
-	// (only the first kGpuAsyncPassMaxTimers passes get pairs); the
-	// emulated (single-queue) path writes none of them — the inline
-	// passes are covered by the ordinary per-pass Optick GPU scopes.
-	static constexpr uint32_t kGpuAsyncPassMaxTimers = 4;
-	enum GpuStageTimer : uint32_t {
-		kGpuStagePcfRaster = 0, // PCF shadow raster (cascade + spot tiles)
-		kGpuStageEvsmCasters,  // EVSM moment (depth-only caster) passes
-		kGpuStageEvsmResolve,  // EVSM per-sample MSAA depth -> moments resolve
-		kGpuStageEvsmBlur,     // EVSM async blur stream (the whole C chain)
-		kGpuStageAsyncPassBase, // per-pass C-stream pairs start here
-		kGpuStageCount = kGpuStageAsyncPassBase + kGpuAsyncPassMaxTimers
-	};
+	// GPU timestamp slots are generic instrumentation. Callers choose the
+	// labels and meanings of the first three slots; no shadow technique or
+	// renderer pass is part of this ABI. Each stage uses a timestamp pair.
+	// The async compute execution path reserves an aggregate slot and up to
+	// four per-pass slots; unused pairs remain invalid (not zero duration).
+	inline constexpr uint32_t kGpuStageUserSlotCount = 3;
+	inline constexpr uint32_t kGpuStageAsyncAggregate = kGpuStageUserSlotCount;
+	inline constexpr uint32_t kGpuAsyncPassMaxTimers = 4;
+	inline constexpr uint32_t kGpuStageAsyncPassBase = kGpuStageAsyncAggregate + 1;
+	inline constexpr uint32_t kGpuStageCount = kGpuStageAsyncPassBase + kGpuAsyncPassMaxTimers;
 
 	enum Bindings {
 		kBinding_Textures = 0, // position 0
@@ -1643,62 +1622,12 @@ struct ImageCreateInfo
 		External
 	};
 
-	// Canonical frame phase order (design-A target-heap aliasing, see
-	// ResourceManager::ClaimTargetHeapRange): the monotonic keyspace the
-	// target-heap interval scheduling keys on. The values mirror the frame's
-	// DATAFLOW order (the rendergraph's topological order - shadow legs,
-	// the occluder depth + HZB pyramid, the temporal seed, the mesh-shader
-	// filter, prepass, motion, Main, the post chain, UI, the composite).
-	// Targets declare a [firstPhase, lastPhase] use window; same-shape
-	// targets with disjoint windows share a packed memory range. WINDOWS
-	// ONLY CONSTRAIN SHARING: a too-wide window just loses sharing, a
-	// too-narrow window CORRUPTS (two live targets on one range) - declare
-	// conservatively (the last REAL consumer, plus slack when unsure).
-	// The depth pair's key order (OccluderPrepass < Hzb < Seed): the seed
-	// pass (the temporal prev-visible draw into renderDepth) appends inside
-	// the filter dispatch - AFTER the HZB pass - and the stable Kahn sort
-	// preserves append order between the (edge-free) HZB and the seed, so
-	// hizDepth [OccluderPrepass..Hzb] and renderDepth [Seed..] are genuinely
-	// sequential. Any change that lets the seed sort before the pyramid
-	// build must revisit the depth windows.
-	enum class TargetPhase : uint32_t {
-		Shadows = 0,        // SDSM fit + dir/spot casts + EVSM moments/blur
-		OccluderPrepass = 1,// occluder-only depth (hizDepth write)
-		Hzb = 2,            // HZB pyramid build (reads hizDepth)
-		Seed = 3,           // temporal seed draw (renderDepth write)
-		GfxFilter = 4,      // mesh-shader filter dispatch (reads the pyramid)
-		DepthPrepass = 5,   // depth prepass / remainder (renderDepth)
-		TileCull = 6,       // forward+ tile/light cull
-		Motion = 7,        // motion vectors
-		Main = 8,           // main scene raster (+MSAA, resolve -> hdr)
-		ProbeBalls = 9,     // chrome-ball cubemap debug
-		Ssgi = 10,           // SSGI AO chain (Main MRTs + compose)
-		Ssr = 11,           // SSR prep (stencil/depth views) + composite
-		Volumetric = 12,    // GI-probe raymarched fog
-		Exposure = 13,      // exposure histogram compute
-		Bloom = 14,         // bloom down/up chain
-		Dof = 15,           // depth of field
-		MotionBlur = 16,    // motion blur gather
-		Tonemap = 17,       // tonemap -> LDR
-		Ui = 18,            // ImGui overlay
-		PostAA = 19,        // SMAA / DLSS
-		Composite = 20,     // UI composite to the swapchain
-		Count = 21
-	};
+	// Callers may declare an inclusive execution interval for heap aliasing.
+	// Intervals refer to caller-defined pass indices, not a renderer-specific
+	// frame schedule. Only enable aliasing when GPU execution and cross-frame
+	// lifetimes prove that differently numbered intervals cannot overlap.
+	// The default remains conservative: no aliasing of concurrent claims.
 
-	// Target-heap aliasing MASTER GATE (default OFF): when off,
-	// ClaimTargetHeapRange forces every window to the full frame - no
-	// range ever shares (targets pack to DISJOINT ranges in the same
-	// blocks, which is plain multi-bind placement, always sound). When
-	// on, declared windows are honored (same-shape disjoint-window
-	// targets share ranges). The regression that forced the gate: the
-	// SDSM cascade fit reads renderDepth at TargetPhase::Shadows - a
-	// cross-frame HISTORY read (the previous frame's depth through the
-	// shared range) that races the previous frame's late writes under
-	// submit overlap - the cascades jumped frame to frame. The env pin
-	// (TOURMALINE_ALIASING=1) parses once at first use; the setter is the
-	// UI's live toggle (affects FUTURE claims - existing ranges stand
-	// until their targets rebuild).
 	[[nodiscard]] bool TargetHeapAliasingEnabled();
 	void SetTargetHeapAliasing(bool on);
 
@@ -1806,17 +1735,6 @@ struct ImageCreateInfo
 		size_t srcOffset = 0;
 		size_t dstOffset = 0;
 		size_t size = 0;
-	};
-
-	// Digest-form tail marker for a pak texture (cooked into the texture
-	// blob's payload header by the serializer): the loader uploads only
-	// the coarse-mip tail [tailFirstMip, end) through the normal ktx path
-	// (parse + transcode-if-needed + CreateStreamingTexture subrange) and
-	// registers the handle for demand upgrades — digest-less blobs take
-	// the full-resident path. The embedded ktx bytes are untouched by the
-	// digest (same payload the legacy path would upload whole).
-	struct TextureStreamMeta {
-		uint32_t tailFirstMip = 0;
 	};
 
 	// Forward declaration for PIMPL firewall – concrete type lives in RHI/resource_manager.h

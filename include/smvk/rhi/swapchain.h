@@ -84,12 +84,9 @@ public:
     // in execution/Optick-scope order. Async work may overlap.
     std::vector<GpuPassTiming> GetGpuPassTimings() const;
     bool HasGpuTiming() const;
-    // GPU stage timings (ms) of the last retired frame — the shadow-path
-    // instrumentation for BOTH shadow representations (see GpuStageTimer
-    // in smvk.h: PCF raster / EVSM casters / EVSM resolve / EVSM blur).
-    // Fills up to count entries of outMs/outValid (index = stage); a
-    // stage reports false until it has run + retired at least once.
-    // False when the device lacks cross-queue timestamps.
+    // Generic GPU timestamp slot durations (ms) for the last retired frame.
+    // Slot labels belong to the caller; reserved async slots are declared
+    // in smvk.h. Unwritten slots are marked invalid.
     bool GetGpuStageTimings(double* outMs, bool* outValid, uint32_t count) const;
     // Last vkQueuePresentKHR wall time (ms): FIFO VSync throttle, i.e.
     // it measures wait rather than CPU work.
