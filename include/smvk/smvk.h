@@ -5,8 +5,8 @@
 
 #include <Engine/Memory/handle.h>
 #include <Engine/Memory/string_view.h>
-#include <Engine/RHI/DescriptorLimits.h>
-#include <Engine/RHI/FrameConfig.h>
+#include <smvk/rhi/descriptor_limits.h>
+#include <smvk/rhi/frame_config.h>
 
 #include <cassert>
 #include <array>
@@ -24,8 +24,8 @@
 
 // ENGINE LIMITS no longer live here — they are ownership-scoped:
 //   smvk::limits (RHI-owned: bindless descriptor budgets, frame
-//   scheduling, window defaults): Engine/RHI/DescriptorLimits.h +
-//   Engine/RHI/FrameConfig.h (both included above via this umbrella).
+//   scheduling, window defaults): smvk/rhi/descriptor_limits.h +
+//   smvk/rhi/frame_config.h (both included above via this umbrella).
 //   engine::renderer::limits (renderer-owned: GPU material table +
 //   runtime simultaneous-light budgets): Engine/Renderer/
 //   RendererLimits.h — deliberately NOT included here; renderer-side
