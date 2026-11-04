@@ -6,10 +6,6 @@
 #include <smvk/smvk.h>
 #include <Engine/Memory/memory.h>
 #include <smvk/core/pool.h>
-// The per-builder hot-reload swap helper (SwapShaderModule): every
-// rendergraph builder includes this header, so the consumer leg's
-// ReloadShaders implementations share one exact module-swap recipe.
-#include <smvk/render_graph/shader_swap.h>
 
 #include <cassert>
 #include <cstddef>
