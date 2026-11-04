@@ -30,7 +30,11 @@
 1. `src/vulkan/impl.cpp` directly includes Tourmaline App, input, world,
    renderer meshes, DLSS, profiler, ImGui and third-party dependencies.
    Separate device/backend behavior from app-host and world rendering,
-   keeping engine adapters in Tourmaline.
+   keeping engine adapters in Tourmaline. `smvk::VertexLayoutId` now
+   lives in smvk.h (moved from Tourmaline mesh.h so the public graph
+   header compiles standalone — Tourmaline must drop its mesh.h copy
+   when vendoring); the layout table it selects (`GetVertexLayoutDesc`)
+   is still consumer-side and must move with the backend.
 2. `src/vulkan/detail/vulkan_impl.h` still includes Tourmaline memory
    allocators and static vertex heaps. Decide which pieces are genuinely RHI
    owned; move those, and convert world-specific heap code to consumer APIs.

@@ -507,6 +507,26 @@ void OnResourceExhaustion(const char* site);
 		bool operator==(const VertexLayoutDesc&) const = default;
 	};
 
+	// ---- the vertex-input layout vocabulary ------------------------------
+	// (Moved from Tourmaline Engine/Renderer/mesh.h — RHI-owned per the
+	// boundary audit; Tourmaline must drop its mesh.h copy when vendoring.)
+	// LAYOUT ids vs REPRESENTATIONS (the naming convention): this enum
+	// selects the pipeline's vertex-INPUT layout — WHICH attributes a
+	// pipeline binds at WHICH locations — never the physical vertex
+	// size. The layout table (GetVertexLayoutDesc) still lives on the
+	// consumer side until the backend migration moves it; the Vulkan
+	// backend consumes it on every bind.
+	enum struct VertexLayoutId {
+		Empty
+		, Static
+		, StaticLightmapped
+		, Skinned
+		, DebugLine
+		, TerrainFull
+		, TerrainReduced
+		, TerrainFarGrid
+	};
+
 	// ============================================================================
 	// Sample counts
 	// ============================================================================
