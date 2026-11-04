@@ -3,7 +3,6 @@
 
 #pragma once
 #include <smvk/smvk.h>
-#include <smvk/rhi/gpu_memory_spill.h>
 // Windowing is SDL3 (see App/app.h). Forward-declared so RHI headers stay
 // light; .cpp files include <SDL3/SDL_video.h>.
 struct SDL_Window;
@@ -18,14 +17,6 @@ struct SDL_Window;
 struct ktxTexture2;
 
 namespace smvk {
-
-// True when an opt-in debug image dump is armed via env: TOURMALINE_SSR_DUMP
-// or TOURMALINE_EVSM_DUMP present with a frame number >= 0 (the same arm
-// condition the SceneRenderer one-shot dumps use). Dump readback goes
-// through ResourceManager::DownloadDataFromImage, which needs TransferSrc
-// on the source image; render targets add that usage flag only when this
-// returns true, so the normal path keeps the leanest usage set.
-bool DebugImageDumpArmed();
 
 // Hardware ray-query input: one opaque triangle surface in the static
 // vertex/index monoblocks and its ROW-major VkTransformMatrixKHR 3x4.
@@ -303,10 +294,6 @@ public:
     // capabilities are queried per image type), so the dense-GI path gates
     // on this instead of assuming.
     bool SupportsBc6h3DSampling();
-    // True when RG32F supports the full EVSM moment chain: 2x MSAA color
-    // attachment + resolve, sampled + storage (async blur). When false the
-    // app keeps the PCF depth path (EVSM silently unavailable).
-    bool SupportsEvsm();
     // True when the device exposes a dedicated compute queue distinct from
     // graphics (EVSM blur overlaps shadow rendering; otherwise emulated).
     bool HasDedicatedComputeQueue();
@@ -327,9 +314,6 @@ public:
     // heap sizes). Cheap (VMA throttles OS queries internally); safe to
     // call once per frame for the debug UI / console stats.
     std::vector<GpuMemoryHeap> GetGpuMemoryInfo() const;
-
-    // Low-rate advisory pressure/spill warning (no eviction claim or automatic action).
-    GpuMemoryWarningResult PollGpuMemoryWarning(double elapsedSeconds);
 
     // Allocation ledger (see the smvk.h block): EXACT per-category
     // committed-byte sums + per-item rows. Immediate-mode pool walks
@@ -369,8 +353,6 @@ public:
     void DestroyShaderModule(ShaderModuleHandle h);
 
 private:
-    GpuMemorySpillDetector gpuMemorySpillDetector_;
-
     std::unique_ptr<Impl> impl_;
 };
 

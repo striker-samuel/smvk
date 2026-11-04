@@ -13,6 +13,7 @@ include/smvk/
   core/                 handles, sharded pools, string views
   reflection/           SPIR-V reflection declarations
   rhi/                  descriptors, resource management, swapchain
+  diagnostics/          optional GPU-memory pressure heuristics
   render_graph/         render graph API
   smvk.h                primary graphics API types
 compat/
