@@ -35,8 +35,13 @@
    allocators and static vertex heaps. Decide which pieces are genuinely RHI
    owned; move those, and convert world-specific heap code to consumer APIs.
 3. `include/smvk/render_graph/render_graph.h` still depends on
-   `Engine/Memory/memory.h` for linear-allocator ownership types. Replace
-   that cross-layer ownership contract as part of the backend migration.
+   `Engine/Memory/memory.h` for linear-allocator ownership types. A
+   transitional vendored copy now lives in `compat/Engine/Memory/` (on
+   the portable include path, compiled by the smoke step), so the public
+   headers build standalone. The real fix remains replacing that
+   cross-layer ownership contract as part of the backend migration —
+   drop the compat copy before Tourmaline vendors smvk, since two
+   `<Engine/Memory/memory.h>` on one include path would collide.
 4. `src/rhi/resource_manager.cpp` and the sample sources still require
    Vulkan/SDL3/KTX/DXC and Tourmaline host/setup implementation. Define an
    independent dependency setup and minimal smvk sample host.

@@ -7,6 +7,10 @@ import sys
 root = Path(__file__).resolve().parents[1]
 errors = []
 allowed = re.compile(r"^[a-z][a-z0-9_]*\.(?:h|cpp|inl|hlsli)$")
+# compat/ is intentionally outside the scanned directories: it holds the
+# transitional vendored Engine/Memory headers that keep the legacy include
+# path <Engine/Memory/memory.h> resolvable (see docs/extraction.md,
+# blocker 3). It must not grow beyond that copy.
 for directory in ("include", "src", "shaders"):
     for path in (root / directory).rglob("*"):
         if not path.is_file():

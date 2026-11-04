@@ -15,6 +15,9 @@ include/smvk/
   rhi/                  descriptors, resource management, swapchain
   render_graph/         render graph API
   smvk.h                primary graphics API types
+compat/
+  Engine/Memory/        transitional Tourmaline memory.h copy (see
+                       docs/extraction.md blocker 3; remove before vendoring)
 src/
   reflection/           SPIR-V reflection implementation (needs SPIRV-Reflect)
   rhi/
