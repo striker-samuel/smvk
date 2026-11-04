@@ -1,5 +1,60 @@
 # smvk
 
-Vulkan-first graphics RHI and render graph, extracted from [Tourmaline](https://github.com/striker-samuel/tourmaline).
+Vulkan-first C++20 graphics API and render graph, being extracted from [Tourmaline](https://github.com/striker-samuel/tourmaline).
 
-This repository is being bootstrapped. The initial extraction is developed on a feature branch; the default branch is intentionally minimal until it has been reviewed.
+> **Extraction in progress — full RHI is NOT standalone or build-verified yet.**
+> The current CMake build exercises only the independent portable headers. The
+> Vulkan backend and triangle/blur/fuzz source are staged for ongoing isolation.
+
+## Layout
+
+```text
+include/smvk/
+  core/                 handles, sharded pools, string views
+  reflection/           SPIR-V reflection declarations
+  rhi/                  descriptors, resource management, swapchain
+  render_graph/         render graph API
+  smvk.h                primary graphics API types
+src/
+  reflection/           SPIR-V reflection implementation (needs SPIRV-Reflect)
+  rhi/
+  render_graph/
+  vulkan/               upstream backend implementation, pending decoupling
+samples/
+  01_triangle/
+  02_blur/
+  03_fuzz/
+shaders/
+  descriptor_limits.hlsli
+```
+
+All source directories and filenames use lowercase `snake_case`. Public
+headers are under `include/smvk/` rather than `include/Engine/`.
+Existing C++ API symbols remain in `namespace smvk`.
+
+## What builds today
+
+```sh
+cmake -S . -B build -DSMVK_BUILD_TESTS=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+These commands configure and test **smvk_portable**, an interface-only target.
+They do **not** compile the Vulkan implementation or run the graphics examples.
+The portability checks are configured for Windows and Linux in GitHub Actions.
+Check CI status before relying on the tests.
+
+## Next steps
+
+See [extraction audit](docs/extraction.md) for the precise remaining
+dependencies and acceptance checklist. In particular, the source still uses
+some Tourmaline-owned memory, app-host, profiler and renderer functionality.
+Do not vendor this branch as a replacement for Tourmaline's working graphics
+implementation until the full RHI target and samples pass clean-clone builds.
+
+## License
+
+MIT, Copyright (c) 2026 Samuel Martin. The source was originally developed
+in Tourmaline and retains upstream headers. Additional third-party dependencies
+will need separate notices as they are wired into the standalone build.
