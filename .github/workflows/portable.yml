@@ -1,7 +1,7 @@
 name: Portable headers
 on:
   push:
-    branches: [main, "extract/**"]
+    branches: [main]
   pull_request:
 jobs:
   portable:

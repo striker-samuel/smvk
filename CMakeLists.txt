@@ -10,7 +10,8 @@ target_compile_features(smvk_portable INTERFACE cxx_std_20)
 target_include_directories(smvk_portable INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
-option(SMVK_BUILD_TESTS "Build portable subset smoke tests" ON)
+# Don't silently introduce the library's tests into an embedding project.
+option(SMVK_BUILD_TESTS "Build portable subset smoke tests" ${PROJECT_IS_TOP_LEVEL})
 if(SMVK_BUILD_TESTS)
     enable_testing()
     add_executable(smvk_portable_smoke tests/portable_smoke.cpp)
