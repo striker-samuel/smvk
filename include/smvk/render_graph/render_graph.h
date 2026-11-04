@@ -89,7 +89,7 @@ namespace smvk
 		void BindComputePipeline(
 			ShaderProgram& shaderProgram);
 
-		// GPU stage timer write (see GpuStageTimer in smvk.h): records a
+		// Generic GPU stage timestamp write (see kGpuStageCount in smvk.h): records a
 		// timestamp query into this pass's command buffer at the flight's
 		// frame-timer pool. begin=true fires after prior commands (the
 		// stage's start), begin=false after the stage's work (its end) —

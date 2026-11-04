@@ -19,7 +19,7 @@ smvk is a Vulkan-first GPU control layer, not an alternate scene renderer.
 ## Remaining staged extraction (not yet removed)
 
 - `TargetPhase` is removed. Target heap claims now accept caller-defined inclusive `uint32_t` execution intervals; aliasing stays disabled by default. Cross-frame and async queue lifetime proof is still the caller's responsibility if enabled.
-- `EngineGlobals` and named PCF/EVSM `GpuStageTimer` slots remain deeply wired to the Vulkan backend. Make their shader data/timestamp labels opt-in and client-defined in a follow-up.
+- `EngineGlobals` remains deeply wired to the backend. Timestamp slots are now generic and the three caller-owned slots can be labeled by applications; the async compute slots are backend-owned.
 - `RayTracingInstance`/`BuildRayTracingWorld` still model static scene geometry and material cutout. Introduce generic BLAS/TLAS primitives before removing them.
 - KTX2 streaming and fixed texture-residency policy still live in the resource manager; extract into an asset/streaming adapter.
 

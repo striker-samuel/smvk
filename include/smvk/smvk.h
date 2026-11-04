@@ -1402,37 +1402,16 @@ void OnResourceExhaustion(const char* site);
 	};
 	static_assert(sizeof(EngineGlobals) == 16, "EngineGlobals must stay 16 bytes (HLSL mirror relies on it)");
 
-	// GPU stage timers — shadow-path instrumentation for BOTH shadow
-	// representations (PCF + EVSM), so A/B runs measure the real GPU cost
-	// of each stage. Written by the shadow pass recording funcs
-	// (CommandBuffer::WriteStageTimestamp) and by RenderGraph::Execute
-	// around the async compute stream; the per-flight frame-timer query
-	// pools carry the query pairs (2+2s / 3+2s), and the swapchain reports
-	// the per-stage ms of the last retired frame (Swapchain::
-	// GetGpuStageTimings). A stage that never ran stays invalid (queries
-	// reset, never written — per-pair NOT_READY), not zero.
-	//
-	// Per-async-pass timers (kGpuStageAsyncPassBase + i): true-async
-	// compute pass i (sorted order) gets its own timestamp pair, written
-	// BOTTOM_OF_PIPE on the compute queue — a stage that is legal there,
-	// unlike the ALL_GRAPHICS stage the Optick Vulkan backend uses (the
-	// reason async passes get CPU-only Optick scopes). The pair measures
-	// the pass's own GPU cost; the GAP between pass k's end and pass k+1's
-	// begin is the queue handoff + timeline-semaphore sync overhead.
-	// EVSM's H->V blur chain is the canonical 2-pass user. Frames with
-	// more async passes than slots keep the aggregate kGpuStageEvsmBlur
-	// (only the first kGpuAsyncPassMaxTimers passes get pairs); the
-	// emulated (single-queue) path writes none of them — the inline
-	// passes are covered by the ordinary per-pass Optick GPU scopes.
-	static constexpr uint32_t kGpuAsyncPassMaxTimers = 4;
-	enum GpuStageTimer : uint32_t {
-		kGpuStagePcfRaster = 0, // PCF shadow raster (cascade + spot tiles)
-		kGpuStageEvsmCasters,  // EVSM moment (depth-only caster) passes
-		kGpuStageEvsmResolve,  // EVSM per-sample MSAA depth -> moments resolve
-		kGpuStageEvsmBlur,     // EVSM async blur stream (the whole C chain)
-		kGpuStageAsyncPassBase, // per-pass C-stream pairs start here
-		kGpuStageCount = kGpuStageAsyncPassBase + kGpuAsyncPassMaxTimers
-	};
+	// GPU timestamp slots are generic instrumentation. Callers choose the
+	// labels and meanings of the first three slots; no shadow technique or
+	// renderer pass is part of this ABI. Each stage uses a timestamp pair.
+	// The async compute execution path reserves an aggregate slot and up to
+	// four per-pass slots; unused pairs remain invalid (not zero duration).
+	inline constexpr uint32_t kGpuStageUserSlotCount = 3;
+	inline constexpr uint32_t kGpuStageAsyncAggregate = kGpuStageUserSlotCount;
+	inline constexpr uint32_t kGpuAsyncPassMaxTimers = 4;
+	inline constexpr uint32_t kGpuStageAsyncPassBase = kGpuStageAsyncAggregate + 1;
+	inline constexpr uint32_t kGpuStageCount = kGpuStageAsyncPassBase + kGpuAsyncPassMaxTimers;
 
 	enum Bindings {
 		kBinding_Textures = 0, // position 0

@@ -1273,7 +1273,7 @@ namespace smvk {
 		double GetLastGpuMs() const { return lastGpuMs_; }
 		bool HasGpuTiming() const { return gpuTimingValid_; }
 		// GPU stage timings (ms) of the last retired frame — the shadow-path
-		// instrumentation (see GpuStageTimer in smvk.h). Per stage: false
+		// instrumentation (see generic GPU timestamp slots in smvk.h). Per stage: false
 		// until it has run + retired at least once (a stage that never ran
 		// leaves its query pair unwritten — per-pair NOT_READY, not zero).
 		const double* GetLastStageGpuMs() const { return lastStageGpuMs_; }
@@ -1400,7 +1400,7 @@ namespace smvk {
 		float timestampPeriod_ = 0.0f; // ns per timestamp tick
 		double lastGpuMs_ = 0.0;
 		bool gpuTimingValid_ = false;
-		// Stage-timer extensions of the frame-timer pools (GpuStageTimer):
+		// Stage-timer extensions of the frame-timer pools (generic GPU timestamp slots):
 		// pairs at queries 2+2s / 3+2s per flight; per-stage validity (a
 		// stage that never ran leaves its pair unwritten = NOT_READY).
 		double lastStageGpuMs_[kGpuStageCount] = {};
