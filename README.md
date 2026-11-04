@@ -43,8 +43,11 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-These commands configure and test **smvk_portable**, an interface-only target.
-They do **not** compile the Vulkan implementation or run the graphics examples.
+These commands configure and test **smvk_portable**, an interface-only
+target. The smoke step compiles every public header standalone — including
+the render graph, which resolves `Engine/Memory/memory.h` through the
+transitional copy in `compat/`. They do **not** compile the Vulkan
+implementation or run the graphics examples.
 The portability checks are configured for Windows and Linux in GitHub Actions.
 Check CI status before relying on the tests.
 
