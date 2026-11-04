@@ -12,6 +12,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Layout checks
+        run: python tests/check_layout.py
       - name: Configure
         run: cmake -S . -B build -DSMVK_BUILD_TESTS=ON
       - name: Build

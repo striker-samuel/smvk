@@ -1,10 +1,8 @@
 // Copyright (c) 2026 Samuel Martin
 // SPDX-License-Identifier: MIT
 
-#include <smvk/core/handle.h>
-#include <smvk/core/string_view.h>
-#include <smvk/rhi/descriptor_limits.h>
-#include <smvk/rhi/frame_config.h>
+#include <smvk/smvk.h>
+#include <smvk/core/pool.h>
 #include <smvk/rhi/gpu_memory_spill.h>
 #include <cassert>
 #include <cstdint>
@@ -14,6 +12,7 @@ int main() {
     static_assert(smvk::limits::MaxVolumeTextures == 8192);
     static_assert(smvk::limits::MaxSamplers == 8);
     static_assert(smvk::limits::MaxFramesInFlight == 2);
+    static_assert(smvk::mem::config::kShardedMaxSize == smvk::limits::MaxTextures);
 
     auto h = smvk::Handle<int>::Mint(12);
     assert(h.valid() && h.index() == 12 && h.gen() == 1);
