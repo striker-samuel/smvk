@@ -8303,7 +8303,7 @@ namespace smvk {
 	std::vector<MemoryAllocInfo> VulkanResourceManager::GetMemoryAllocInfos() {
 		std::vector<MemoryAllocInfo> out;
 		// ALL images, tracked or not: bytes == 0 marks an untracked backing
-		// (heap-placed design-B target / external) — the display computes an
+		// (heap-placed design-B transient image / external) — the display computes an
 		// estimate from the geometry. The LEDGER sums (GetMemoryLedger)
 		// count tracked bytes only; this list is the complete MAP.
 		images_.forEachHandle([&](ImageHandle handle) {

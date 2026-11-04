@@ -548,7 +548,7 @@ void OnResourceExhaustion(const char* site);
 
 	// BufferType encapsulates memoryUsage, locality and more.
 	// This is a higher-level abstraction than the rest of the RHI but the reality is
-	// we need to cover X uses for 99% of apps. No need to provide MemoryUsage or Locality and expose them to the user
+	// we need to cover eight uses for 99% of apps. No need to provide MemoryUsage or Locality and expose them to the user
 
 	typedef enum BufferType {
 		BufferType_Index = 0,
@@ -1278,7 +1278,7 @@ void OnResourceExhaustion(const char* site);
  // contract: render thread, unsynchronized, zero cost when not called).
  // Destroy needs no bookkeeping: the bytes die with the entry. NOT
  // tracked (0 bytes, they land in the viewer's "untracked" remainder):
- // heap-placed design-B targets (graph-owned VkDeviceMemory), external
+ // heap-placed design-B transient images (graph-owned VkDeviceMemory), external
  // images, and the raw upload/staging rings created outside
  // CreateBuffer. See the VRAM viewer (Ctrl+M).
  enum class MemoryCategory : uint32_t {
@@ -1297,7 +1297,7 @@ void OnResourceExhaustion(const char* site);
  // One per-item ledger row (GetMemoryAllocInfos): the exact bytes + the
  // entry's arena-owned debug name + its category. Images carry their
  // geometry (the map/display fields; zeros for buffers); bytes == 0 on
- // an image = UNTRACKED backing (heap-placed design-B target / external
+ // an image = UNTRACKED backing (heap-placed design-B transient image / external
  // — display it with a computed estimate).
  struct MemoryAllocInfo {
      StringViewT name{};
