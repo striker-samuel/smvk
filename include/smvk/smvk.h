@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <Engine/Memory/handle.h>
-#include <Engine/Memory/string_view.h>
+#include <smvk/core/handle.h>
+#include <smvk/core/string_view.h>
 #include <smvk/rhi/descriptor_limits.h>
 #include <smvk/rhi/frame_config.h>
 
