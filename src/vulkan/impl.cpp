@@ -6029,11 +6029,12 @@ smvk::VulkanResourceManager::ClaimTargetHeapRange(
 	// so every claim packs to a DISJOINT range (plain multi-bind
 	// placement, no aliasing, always sound). The declared windows are
 	// honored only when opted in.
+	// Validate the caller's interval even when sharing is disabled.
+	if (firstPhase > lastPhase) return {};
 	if (!TargetHeapAliasingEnabled()) {
 		firstPhase = 0;
 		lastPhase = UINT32_MAX;
 	}
-	if (firstPhase > lastPhase) return {};
 	const uint32_t first = firstPhase;
 	const uint32_t last = lastPhase;
 
