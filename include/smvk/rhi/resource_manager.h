@@ -7,8 +7,8 @@
 // Windowing is SDL3 (see App/app.h). Forward-declared so RHI headers stay
 // light; .cpp files include <SDL3/SDL_video.h>.
 struct SDL_Window;
-#include <Engine/Memory/handle.h>
-#include <Engine/Memory/pool.h>
+#include <smvk/core/handle.h>
+#include <smvk/core/pool.h>
 #include <Engine/Renderer/spirv_reflection.h>
 #include <memory>
 #include <array>

@@ -5,7 +5,7 @@
 
 #include <smvk/smvk.h>
 #include <Engine/Memory/memory.h>
-#include <Engine/Memory/pool.h>
+#include <smvk/core/pool.h>
 #include <Engine/Renderer/mesh.h>
 // The per-builder hot-reload swap helper (SwapShaderModule): every
 // rendergraph builder includes this header, so the consumer leg's
