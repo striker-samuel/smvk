@@ -10,7 +10,7 @@
 #endif
 #include "volk.h"
 #include <SDL3/SDL_video.h>
-#include "../Vulkan/detail/vulkan_impl.h"
+#include "../vulkan/detail/vulkan_impl.h"
 #include <ktx.h>
 #include <cstdlib>
 #include <array>

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include <smvk/rhi/swapchain.h>
-#include "../Vulkan/detail/vulkan_impl.h"
+#include "../vulkan/detail/vulkan_impl.h"
 #include <smvk/rhi/resource_manager.h>
 
 namespace smvk {
