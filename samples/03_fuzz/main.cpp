@@ -49,7 +49,7 @@
 #include <SDL3/SDL_video.h> // the window self-resize mode (SDL_SetWindowSize)
 
 #include <Engine/core.h>
-#include <Engine/Rendergraph/rendergraph.h>
+#include <smvk/render_graph/render_graph.h>
 
 namespace {
 
