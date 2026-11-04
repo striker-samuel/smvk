@@ -1,0 +1,14 @@
+# Build output
+build/
+out/
+
+# IDE / editor
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Python tooling (tests/check_layout.py)
+__pycache__/
+*.pyc
