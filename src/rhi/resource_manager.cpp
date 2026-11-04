@@ -244,8 +244,8 @@ ImageHandle ResourceManager::GetTextureImageHandle(TextureHandle handle) const {
 Holder<ImageHandle> ResourceManager::CreateHeapImage(
     const ImageCreateInfo& ci) { return impl_->vulkan.CreateHeapImage(ci); }
 Holder<TargetHeapClaimHandle> ResourceManager::ClaimTargetHeapRange(
-    ImageHandle image, TargetPhase firstPhase, TargetPhase lastPhase) {
-    return impl_->vulkan.ClaimTargetHeapRange(image, firstPhase, lastPhase);
+    ImageHandle image, uint32_t firstUse, uint32_t lastUse) {
+    return impl_->vulkan.ClaimTargetHeapRange(image, firstUse, lastUse);
 }
 void ResourceManager::ReleaseTargetHeapClaim(TargetHeapClaimHandle claim) {
     impl_->vulkan.ReleaseTargetHeapClaim(claim);

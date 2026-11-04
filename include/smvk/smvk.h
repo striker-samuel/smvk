@@ -1643,62 +1643,12 @@ struct ImageCreateInfo
 		External
 	};
 
-	// Canonical frame phase order (design-A target-heap aliasing, see
-	// ResourceManager::ClaimTargetHeapRange): the monotonic keyspace the
-	// target-heap interval scheduling keys on. The values mirror the frame's
-	// DATAFLOW order (the rendergraph's topological order - shadow legs,
-	// the occluder depth + HZB pyramid, the temporal seed, the mesh-shader
-	// filter, prepass, motion, Main, the post chain, UI, the composite).
-	// Targets declare a [firstPhase, lastPhase] use window; same-shape
-	// targets with disjoint windows share a packed memory range. WINDOWS
-	// ONLY CONSTRAIN SHARING: a too-wide window just loses sharing, a
-	// too-narrow window CORRUPTS (two live targets on one range) - declare
-	// conservatively (the last REAL consumer, plus slack when unsure).
-	// The depth pair's key order (OccluderPrepass < Hzb < Seed): the seed
-	// pass (the temporal prev-visible draw into renderDepth) appends inside
-	// the filter dispatch - AFTER the HZB pass - and the stable Kahn sort
-	// preserves append order between the (edge-free) HZB and the seed, so
-	// hizDepth [OccluderPrepass..Hzb] and renderDepth [Seed..] are genuinely
-	// sequential. Any change that lets the seed sort before the pyramid
-	// build must revisit the depth windows.
-	enum class TargetPhase : uint32_t {
-		Shadows = 0,        // SDSM fit + dir/spot casts + EVSM moments/blur
-		OccluderPrepass = 1,// occluder-only depth (hizDepth write)
-		Hzb = 2,            // HZB pyramid build (reads hizDepth)
-		Seed = 3,           // temporal seed draw (renderDepth write)
-		GfxFilter = 4,      // mesh-shader filter dispatch (reads the pyramid)
-		DepthPrepass = 5,   // depth prepass / remainder (renderDepth)
-		TileCull = 6,       // forward+ tile/light cull
-		Motion = 7,        // motion vectors
-		Main = 8,           // main scene raster (+MSAA, resolve -> hdr)
-		ProbeBalls = 9,     // chrome-ball cubemap debug
-		Ssgi = 10,           // SSGI AO chain (Main MRTs + compose)
-		Ssr = 11,           // SSR prep (stencil/depth views) + composite
-		Volumetric = 12,    // GI-probe raymarched fog
-		Exposure = 13,      // exposure histogram compute
-		Bloom = 14,         // bloom down/up chain
-		Dof = 15,           // depth of field
-		MotionBlur = 16,    // motion blur gather
-		Tonemap = 17,       // tonemap -> LDR
-		Ui = 18,            // ImGui overlay
-		PostAA = 19,        // SMAA / DLSS
-		Composite = 20,     // UI composite to the swapchain
-		Count = 21
-	};
+	// Callers may declare an inclusive execution interval for heap aliasing.
+	// Intervals refer to caller-defined pass indices, not a renderer-specific
+	// frame schedule. Only enable aliasing when GPU execution and cross-frame
+	// lifetimes prove that differently numbered intervals cannot overlap.
+	// The default remains conservative: no aliasing of concurrent claims.
 
-	// Target-heap aliasing MASTER GATE (default OFF): when off,
-	// ClaimTargetHeapRange forces every window to the full frame - no
-	// range ever shares (targets pack to DISJOINT ranges in the same
-	// blocks, which is plain multi-bind placement, always sound). When
-	// on, declared windows are honored (same-shape disjoint-window
-	// targets share ranges). The regression that forced the gate: the
-	// SDSM cascade fit reads renderDepth at TargetPhase::Shadows - a
-	// cross-frame HISTORY read (the previous frame's depth through the
-	// shared range) that races the previous frame's late writes under
-	// submit overlap - the cascades jumped frame to frame. The env pin
-	// (TOURMALINE_ALIASING=1) parses once at first use; the setter is the
-	// UI's live toggle (affects FUTURE claims - existing ranges stand
-	// until their targets rebuild).
 	[[nodiscard]] bool TargetHeapAliasingEnabled();
 	void SetTargetHeapAliasing(bool on);
 

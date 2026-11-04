@@ -18,9 +18,13 @@ smvk is a Vulkan-first GPU control layer, not an alternate scene renderer.
 
 ## Remaining staged extraction (not yet removed)
 
-- `TargetPhase` and target-heap claiming still assume Tourmaline's render pass order. Replace with generic validated lifetime/interval data, including cross-frame and async queue lifetime constraints, **before** deleting the enum.
+- `TargetPhase` is removed. Target heap claims now accept caller-defined inclusive `uint32_t` execution intervals; aliasing stays disabled by default. Cross-frame and async queue lifetime proof is still the caller's responsibility if enabled.
 - `EngineGlobals` and named PCF/EVSM `GpuStageTimer` slots remain deeply wired to the Vulkan backend. Make their shader data/timestamp labels opt-in and client-defined in a follow-up.
 - `RayTracingInstance`/`BuildRayTracingWorld` still model static scene geometry and material cutout. Introduce generic BLAS/TLAS primitives before removing them.
 - KTX2 streaming and fixed texture-residency policy still live in the resource manager; extract into an asset/streaming adapter.
 
 This is an incremental API-breaking cleanup. Tourmaline callers of removed symbols must migrate when updating their vendored smvk snapshot. The current portable build does **not** compile the staged Vulkan backend.
+
+## Standalone ownership
+
+smvk is its own repository. API compatibility with Tourmaline is not a constraint. Do not import renderer-specific pass names or environment switches. Remove or generalize legacy behavior based on smvk's own requirements rather than a downstream application's compatibility needs.

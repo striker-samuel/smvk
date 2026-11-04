@@ -775,8 +775,8 @@ namespace smvk {
 		// UNBOUND heap image (CreateHeapImage's product). Empty handle on
 		// failure.
 		[[nodiscard]] Holder<TargetHeapClaimHandle> ClaimTargetHeapRange(
-			ImageHandle image, TargetPhase firstPhase,
-			TargetPhase lastPhase);
+			ImageHandle image, uint32_t firstUse,
+			uint32_t lastUse);
 		// Drops the slot's live-user count; the LAST user's release frees
 		// the range RETIREMENT-ORDERED (DeferDestroy - behind the caller's
 		// image destroy in the deferred FIFO). No-op on empty/dead handles.
@@ -815,8 +815,8 @@ namespace smvk {
 			struct Claim {
 				uint32_t slot = ~0u;
 				uint64_t shape = 0;
-				TargetPhase firstPhase = TargetPhase::Count,
-					lastPhase = TargetPhase::Count;
+				uint32_t firstPhase = UINT32_MAX,
+					lastPhase = UINT32_MAX;
 			};
 			std::vector<Block> blocks;
 			std::vector<Slot> slots;

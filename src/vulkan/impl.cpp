@@ -5970,18 +5970,15 @@ void smvk::VulkanResourceManager::BindHeapImage(ImageHandle handle,
 }
 
 // ---- Target heap (design-A interval-aliased target memory; the system
-// reference is docs/target_heap_packing.md) ----
+// generic caller-defined lifetime intervals) ----
 // The master gate's single storage (see smvk.h's
 // TargetHeapAliasingEnabled contract): default OFF -
-// TOURMALINE_ALIASING=1 opts in. The gate forces every window to the
+// explicitly enabled by the host. The gate forces every window to the
 // full frame so no range ever shares (disjoint-range placement only,
 // always sound).
 namespace {
 	bool& TargetHeapAliasingGate() {
-		static bool value = [] {
-			const char* e = std::getenv("TOURMALINE_ALIASING");
-			return e != nullptr && std::atoi(e) == 1;
-		}();
+		static bool value = false;
 		return value;
 	}
 }
@@ -5997,10 +5994,10 @@ void smvk::SetTargetHeapAliasing(bool on) {
 // CompileTransientHeap (shape buckets + interval slots + VMA virtual
 // blocks over big device-local blocks), with slot live-user refcounts -
 // graph-EXTERNAL targets claim by declared [firstPhase, lastPhase]
-// windows (canonical TargetPhase order).
+// windows (caller-provided execution indices).
 [[nodiscard]] smvk::Holder<smvk::TargetHeapClaimHandle>
 smvk::VulkanResourceManager::ClaimTargetHeapRange(
-	ImageHandle image, TargetPhase firstPhase, TargetPhase lastPhase)
+	ImageHandle image, uint32_t firstPhase, uint32_t lastPhase)
 {
 	auto* img = images_.get(image);
 	if (!img || img->vkImage == VK_NULL_HANDLE || !img->transientHeap) {
@@ -6033,11 +6030,12 @@ smvk::VulkanResourceManager::ClaimTargetHeapRange(
 	// placement, no aliasing, always sound). The declared windows are
 	// honored only when opted in.
 	if (!TargetHeapAliasingEnabled()) {
-		firstPhase = TargetPhase::Shadows;
-		lastPhase = TargetPhase::Composite;
+		firstPhase = 0;
+		lastPhase = UINT32_MAX;
 	}
-	const uint32_t first = static_cast<uint32_t>(firstPhase);
-	const uint32_t last = static_cast<uint32_t>(lastPhase);
+	if (firstPhase > lastPhase) return {};
+	const uint32_t first = firstPhase;
+	const uint32_t last = lastPhase;
 
 	// Join a live slot: same shape + the newcomer's window is DISJOINT
 	// from every live user's span (arrival-order-independent: a wide

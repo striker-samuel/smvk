@@ -228,7 +228,7 @@ public:
     // ---- Target heap (design-A interval-aliased target memory) ----
     // Facade forwarders; the full contracts live on the Vulkan impl
     // (vulkan_impl.h - see VulkanResourceManager's block) and the
-    // canonical phase order on TargetPhase (smvk.h):
+    // caller-provided generic execution interval:
     //   CreateHeapImage: unbound VK_IMAGE_CREATE_ALIAS_BIT image (no
     //     VmaAllocation) for a later packed-range bind.
     //   ClaimTargetHeapRange: claim + bind a packed range by the
@@ -244,7 +244,7 @@ public:
     [[nodiscard]] Holder<ImageHandle> CreateHeapImage(
         const ImageCreateInfo& ci);
     [[nodiscard]] Holder<TargetHeapClaimHandle> ClaimTargetHeapRange(
-        ImageHandle image, TargetPhase firstPhase, TargetPhase lastPhase);
+        ImageHandle image, uint32_t firstUse, uint32_t lastUse);
     void ReleaseTargetHeapClaim(TargetHeapClaimHandle claim);
     uint32_t GetTextureMipLevels(TextureHandle handle) const;
     // Raw Vulkan interop (opaque native handles for external UI/render
