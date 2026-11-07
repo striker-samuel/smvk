@@ -4,15 +4,15 @@ project(smvk LANGUAGES CXX VERSION 0.1.0)
 # The full Vulkan backend is still being extracted. This intentionally
 # builds only the already-independent portable headers. It is NOT an
 # executable RHI backend or a substitute for Tourmaline's current engine.
+add_subdirectory(core)
+
 add_library(smvk_portable INTERFACE)
 add_library(smvk::portable ALIAS smvk_portable)
 target_compile_features(smvk_portable INTERFACE cxx_std_20)
+target_link_libraries(smvk_portable INTERFACE tourmaline_core)
 target_include_directories(smvk_portable INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    # Transitional: vendored Tourmaline Engine/Memory headers so the
-    # public headers (render_graph.h) resolve <Engine/Memory/memory.h>
-    # standalone. Drop when the graph owns its storage contract
-    # (docs/extraction.md, blocker 3).
+    # Compatibility forwarding headers for staged legacy source includes.
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/compat>)
 
 # Don't silently introduce the library's tests into an embedding project.

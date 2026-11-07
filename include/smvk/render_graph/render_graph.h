@@ -4,7 +4,7 @@
 #pragma once
 
 #include <smvk/smvk.h>
-#include <Engine/Memory/memory.h>
+#include <Core/Memory/memory.h>
 #include <smvk/core/pool.h>
 
 #include <cassert>

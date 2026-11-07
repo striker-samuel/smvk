@@ -22,7 +22,7 @@
   When vendoring, ensure shaders share the same descriptor budget contract.
 - Removed the Tourmaline shader-library hot-reload helper from the public
   smvk render graph header. That helper belongs on the consumer side.
-- Added a portable CMake target, portable smoke test, file-layout enforcement
+- Vendored Core headers and generic allocator implementations from Tourmaline\n  Core separation PR #253 (commit `8affc5dc7c6fe5083bdf7574deab0b6aca9835b0`).\n  The render graph now references the canonical `Core/Memory/memory.h` header;\n  legacy compat headers are thin forwarders instead of duplicated definitions.\n- Added a portable CMake target, portable smoke test, file-layout enforcement
   and Windows/Linux CI configuration.
 
 ## Still blocking a standalone Vulkan build
@@ -38,14 +38,7 @@
 2. `src/vulkan/detail/vulkan_impl.h` still includes Tourmaline memory
    allocators and static vertex heaps. Decide which pieces are genuinely RHI
    owned; move those, and convert world-specific heap code to consumer APIs.
-3. `include/smvk/render_graph/render_graph.h` still depends on
-   `Engine/Memory/memory.h` for linear-allocator ownership types. A
-   transitional vendored copy now lives in `compat/Engine/Memory/` (on
-   the portable include path, compiled by the smoke step), so the public
-   headers build standalone. The real fix remains replacing that
-   cross-layer ownership contract as part of the backend migration —
-   drop the compat copy before Tourmaline vendors smvk, since two
-   `<Engine/Memory/memory.h>` on one include path would collide.
+3. `include/smvk/render_graph/render_graph.h` now depends on vendored\n   `Core/Memory/memory.h` for allocator ownership types. Core is compiled\n   independently of Engine, but the graph's lifetime/ownership contract\n   remains coupled to that allocator API. Retire legacy compat includes\n   as staged Vulkan sources are decoupled.
 4. `src/rhi/resource_manager.cpp` and the sample sources still require
    Vulkan/SDL3/KTX/DXC and Tourmaline host/setup implementation. Define an
    independent dependency setup and minimal smvk sample host.
