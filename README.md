@@ -59,9 +59,10 @@ Check CI status before relying on the tests.
 
 `core/` is a hard copy of Tourmaline's proposed Core separation from
 [`tourmaline#253`](https://github.com/striker-samuel/tourmaline/pull/253),
-commit `f98792c799d57ab6dd4873b524032ffd781477a9`.
-It includes the three allocator implementation files and a standalone static
-`tourmaline_core` build target. This is not a submodule. The legacy
+commit `8affc5dc7c6fe5083bdf7574deab0b6aca9835b0`.
+It includes the generic arena and linear allocator implementations in an
+independent `tourmaline_core` static target. Engine owns process/frame/flight
+lifetime policy and `memory.cpp`; those implementations are not vendored. This is not a submodule. The legacy
 `compat/Engine/Memory` paths forward to this single canonical copy.
 
 ## Next steps

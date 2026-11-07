@@ -22,7 +22,7 @@
   When vendoring, ensure shaders share the same descriptor budget contract.
 - Removed the Tourmaline shader-library hot-reload helper from the public
   smvk render graph header. That helper belongs on the consumer side.
-- Vendored both headers and compiled memory implementations from Tourmaline\n  Core separation PR #253 (commit `f98792c799d57ab6dd4873b524032ffd781477a9`).\n  The render graph now references the canonical `Core/Memory/memory.h` header;\n  legacy compat headers are thin forwarders instead of duplicated definitions.\n- Added a portable CMake target, portable smoke test, file-layout enforcement
+- Vendored Core headers and generic allocator implementations from Tourmaline\n  Core separation PR #253 (commit `8affc5dc7c6fe5083bdf7574deab0b6aca9835b0`).\n  The render graph now references the canonical `Core/Memory/memory.h` header;\n  legacy compat headers are thin forwarders instead of duplicated definitions.\n- Added a portable CMake target, portable smoke test, file-layout enforcement
   and Windows/Linux CI configuration.
 
 ## Still blocking a standalone Vulkan build
