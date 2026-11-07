@@ -16,9 +16,12 @@ include/smvk/
   diagnostics/          optional GPU-memory pressure heuristics
   render_graph/         render graph API
   smvk.h                primary graphics API types
+core/
+  include/Core/Memory/  verbatim upstream Core API headers
+  src/Memory/           vendored Core allocator implementations
+  CMakeLists.txt         independently compiled static Core target
 compat/
-  Engine/Memory/        transitional Tourmaline memory.h copy (see
-                       docs/extraction.md blocker 3; remove before vendoring)
+  Engine/Memory/        legacy forwarding headers to Core
 src/
   reflection/           SPIR-V reflection implementation (needs SPIRV-Reflect)
   rhi/
@@ -46,11 +49,20 @@ ctest --test-dir build --output-on-failure
 
 These commands configure and test **smvk_portable**, an interface-only
 target. The smoke step compiles every public header standalone — including
-the render graph, which resolves `Engine/Memory/memory.h` through the
-transitional copy in `compat/`. They do **not** compile the Vulkan
+the render graph, which resolves `Core/Memory/memory.h` through the
+vendored compiled `tourmaline_core` target. They do **not** compile the Vulkan
 implementation or run the graphics examples.
 The portability checks are configured for Windows and Linux in GitHub Actions.
 Check CI status before relying on the tests.
+
+## Core snapshot
+
+`core/` is a hard copy of Tourmaline's proposed Core separation from
+[`tourmaline#253`](https://github.com/striker-samuel/tourmaline/pull/253),
+commit `f98792c799d57ab6dd4873b524032ffd781477a9`.
+It includes the three allocator implementation files and a standalone static
+`tourmaline_core` build target. This is not a submodule. The legacy
+`compat/Engine/Memory` paths forward to this single canonical copy.
 
 ## Next steps
 

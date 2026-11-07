@@ -12,8 +12,7 @@
 #include <smvk/rhi/resource_manager.h>
 #include <smvk/rhi/swapchain.h>
 // Compile step: every public header must build standalone — including
-// the render graph, which resolves <Engine/Memory/memory.h> through the
-// compat copy (compat/Engine/Memory/memory.h).
+// the render graph, which resolves <Core/Memory/memory.h> from vendored Core.
 #include <smvk/render_graph/render_graph.h>
 #include <cstdint>
 #include <cstdio>
@@ -32,7 +31,7 @@ int main() {
     static_assert(smvk::limits::MaxSamplers == 8);
     static_assert(smvk::limits::MaxFramesInFlight == 2);
     static_assert(smvk::mem::config::kShardedMaxSize == smvk::limits::MaxTextures);
-    // The render graph header compiles against the compat memory copy:
+    // The render graph header compiles against the vendored Core memory API:
     // smvk::mem::LinearPtr must resolve to the dtor-only unique_ptr.
     static_assert(std::is_same_v<
         smvk::mem::LinearPtr<int>,
